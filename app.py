@@ -2,7 +2,9 @@ import os
 import sys
 import json
 from datetime import datetime
-
+from weather import Weather, Unit
+from myconfig import *
+import datetime as dt
 import requests
 from flask import Flask, request
 
@@ -20,6 +22,89 @@ def verify():
 
     return "Hello world", 200
 
+
+def bustohome(user_id):
+    hours = [5,6,6,7,8,9,9,10,11,11,12,13,13,14,15,15,16,17,17,18]
+    mins = [55,30,55,45,30,15,50,35,15,50,10,15,50,25,5,40,10,0,50,50]
+    h=dt.datetime.now().hour+2
+    m=dt.datetime.now().minute+2
+
+    for x in range(18):
+        if h == hours[x] and m <= mins[x] and mins[x] <= 9:
+            send_message(user_id, "The earliest bus to home: " + str(hours[x]) + ":0" + str(mins[x]))
+            break
+        if h == hours[x] and m <= mins[x] and mins[x] > 9:
+            send_message(user_id, "The earliest faster to home: " + str(hours[x]) + ":" + str(mins[x]))
+            break
+        elif h < hours[x] and mins[x] <= 9:
+            send_message(user_id, "The earliest faster to home: " + str(hours[x]) + ":0" + str(mins[x]))
+            break
+        elif h < hours[x] and mins[x] > 9:
+            send_message(user_id, "The earliest faster to home: " + str(hours[x]) + ":" + str(mins[x]))
+            break
+        else:
+            continue
+            
+
+def bustolomza(user_id):
+    hours = [6,7,7,8,9,10,10,11,12,13,13,14,14,15,16,17,18,18]
+    mins = [22,2,52,52,37,22,47,27,37,7,32,27,52,27,17,12,17,57]
+    h=dt.datetime.now().hour+2
+    m=dt.datetime.now().minute+2
+
+    for x in range(18):
+        if h == hours[x] and m <= mins[x] and mins[x] <= 9:
+            send_message(user_id, "The earliest bus to lomza: " + str(hours[x]) + ":0" + str(mins[x]))
+            break
+        if h == hours[x] and m <= mins[x] and mins[x] > 9:
+            send_message(user_id, "The earliest bus to lomza: " + str(hours[x]) + ":" + str(mins[x]))
+            break
+        elif h < hours[x] and mins[x] <= 9:
+            send_message(user_id, "The earliest bus to lomza: " + str(hours[x]) + ":0" + str(mins[x]))
+            break
+        elif h < hours[x] and mins[x] > 9:
+            send_message(user_id, "The earliest bus to lomza: " + str(hours[x]) + ":" + str(mins[x]))
+            break
+        else:
+            continue
+        
+
+def weatherinfo(user_id):
+    weather = Weather(unit=Unit.CELSIUS)
+    location = weather.lookup_by_latlng(53.1780600,22.0593500)
+    condition = location.condition
+    forecasts = location.forecast
+
+    send_message(user_id, "Weather condition:")
+    currentTemp = ("Current temp is: " + str(condition.temp))
+    send_message(user_id, currentTemp)
+    
+    for forecast in forecasts:
+        send_message(user_id, forecast.text)
+        send_message(user_id, forecast.date)
+        
+        highestTemp = ("Highest temperature is: " + str(forecast.high))
+        lowestTemp = ("Lowest temperature is: " + str(forecast.low))
+        
+        send_message(user_id, highestTemp)
+        send_message(user_id, lowestTemp)
+        break
+
+def nextlesson(user_id):
+    dt.datetime.today()
+    currentDay = dt.datetime.today().weekday()
+    currentHour = dt.datetime.now().hour+2
+    currentMinute = dt.datetime.now().minute+2
+
+    for x in range(8):
+        if currentHour < lessonHour[x] and lesson[currentDay][x] != "NULL" or currentHour == lessonHour[x] and currentminute < lessonMinute[x]:
+            lessonMessage = ("Next lesson: " + str(lesson[currentDay][x]))
+            classMessage = ("In class: " + str(lessonClass[currentDay][x]))
+            send_message(user_id, lessonMessage)
+            send_message(user_id, classMessage)
+            break
+        else:
+            continue
 
 @app.route('/', methods=['POST'])
 def webhook():
@@ -40,7 +125,10 @@ def webhook():
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
 
-                    send_message(sender_id, "roger that!")
+                    bustohome(user_id=sender_id)
+                    bustolomza(user_id=sender_id)
+                    weatherinfo(user_id=sender_id)
+                    nextlesson(user_id=sender_id)
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
@@ -84,11 +172,11 @@ def log(msg, *args, **kwargs):  # simple wrapper for logging to stdout on heroku
             msg = json.dumps(msg)
         else:
             msg = unicode(msg).format(*args, **kwargs)
-        print u"{}: {}".format(datetime.now(), msg)
+        print (u"{}: {}".format(datetime.now(), msg))
     except UnicodeEncodeError:
         pass  # squash logging errors in case of non-ascii text
     sys.stdout.flush()
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+app.run(debug=True)
