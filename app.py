@@ -7,6 +7,9 @@ from myconfig import *
 import datetime as dt
 import requests
 from flask import Flask, request
+import logging
+
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
@@ -27,20 +30,20 @@ def bustohome(user_id):
     hours = [5,6,6,7,8,9,9,10,11,11,12,13,13,14,15,15,16,17,17,18]
     mins = [55,30,55,45,30,15,50,35,15,50,10,15,50,25,5,40,10,0,50,50]
     h=dt.datetime.now().hour+2
-    m=dt.datetime.now().minute+2
+    m=dt.datetime.now().minute
 
     for x in range(18):
         if h == hours[x] and m <= mins[x] and mins[x] <= 9:
             send_message(user_id, "The earliest bus to home: " + str(hours[x]) + ":0" + str(mins[x]))
             break
         if h == hours[x] and m <= mins[x] and mins[x] > 9:
-            send_message(user_id, "The earliest faster to home: " + str(hours[x]) + ":" + str(mins[x]))
+            send_message(user_id, "The earliest bus to home: " + str(hours[x]) + ":" + str(mins[x]))
             break
         elif h < hours[x] and mins[x] <= 9:
-            send_message(user_id, "The earliest faster to home: " + str(hours[x]) + ":0" + str(mins[x]))
+            send_message(user_id, "The earliest bus to home: " + str(hours[x]) + ":0" + str(mins[x]))
             break
         elif h < hours[x] and mins[x] > 9:
-            send_message(user_id, "The earliest faster to home: " + str(hours[x]) + ":" + str(mins[x]))
+            send_message(user_id, "The earliest bus to home: " + str(hours[x]) + ":" + str(mins[x]))
             break
         else:
             continue
@@ -50,7 +53,7 @@ def bustolomza(user_id):
     hours = [6,7,7,8,9,10,10,11,12,13,13,14,14,15,16,17,18,18]
     mins = [22,2,52,52,37,22,47,27,37,7,32,27,52,27,17,12,17,57]
     h=dt.datetime.now().hour+2
-    m=dt.datetime.now().minute+2
+    m=dt.datetime.now().minute
 
     for x in range(18):
         if h == hours[x] and m <= mins[x] and mins[x] <= 9:
@@ -93,11 +96,13 @@ def weatherinfo(user_id):
 def nextlesson(user_id):
     dt.datetime.today()
     currentDay = dt.datetime.today().weekday()
+    
     currentHour = dt.datetime.now().hour+2
-    currentMinute = dt.datetime.now().minute+2
+    currentMinute = dt.datetime.now().minute
+
 
     for x in range(8):
-        if currentHour < lessonHour[x] and lesson[currentDay][x] != "NULL" or currentHour == lessonHour[x] and currentminute < lessonMinute[x]:
+        if currentHour < lessonHour[x] and lesson[currentDay][x] != "NULL" or currentHour == lessonHour[x] and currentMinute < lessonMinute[x]:
             lessonMessage = ("Next lesson: " + str(lesson[currentDay][x]))
             classMessage = ("In class: " + str(lessonClass[currentDay][x]))
             send_message(user_id, lessonMessage)
@@ -169,10 +174,7 @@ def send_message(recipient_id, message_text):
 
 def log(msg, *args, **kwargs):  # simple wrapper for logging to stdout on heroku
     try:
-        if type(msg) is dict:
-            msg = json.dumps(msg)
-        else:
-            msg = unicode(msg).format(*args, **kwargs)
+        msg = json.dumps(msg)
         print (u"{}: {}".format(datetime.now(), msg))
     except UnicodeEncodeError:
         pass  # squash logging errors in case of non-ascii text
@@ -180,4 +182,4 @@ def log(msg, *args, **kwargs):  # simple wrapper for logging to stdout on heroku
 
 
 if __name__ == '__main__':
-app.run(debug=True)
+    app.run(debug=True)
