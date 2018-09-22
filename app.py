@@ -31,45 +31,60 @@ def bustohome(user_id):
     mins = [55,30,55,45,30,15,50,35,15,50,10,15,50,25,5,40,10,0,50,50]
     h=dt.datetime.now().hour+2
     m=dt.datetime.now().minute
+    IsBusAvailable = False 
 
     for x in range(18):
         if h == hours[x] and m <= mins[x] and mins[x] <= 9:
             send_message(user_id, "The earliest bus to home: " + str(hours[x]) + ":0" + str(mins[x]))
+            IsBusAvailable=True            
             break
         if h == hours[x] and m <= mins[x] and mins[x] > 9:
             send_message(user_id, "The earliest bus to home: " + str(hours[x]) + ":" + str(mins[x]))
+            IsBusAvailable=True
             break
         elif h < hours[x] and mins[x] <= 9:
             send_message(user_id, "The earliest bus to home: " + str(hours[x]) + ":0" + str(mins[x]))
+            IsBusAvailable=True
             break
         elif h < hours[x] and mins[x] > 9:
             send_message(user_id, "The earliest bus to home: " + str(hours[x]) + ":" + str(mins[x]))
+            IsBusAbailable=True
             break
         else:
             continue
-            
+        
+    if(IsBusAvailable == False):
+        send_message(user_id, "No more upcoming buses to home today!")
 
 def bustolomza(user_id):
     hours = [6,7,7,8,9,10,10,11,12,13,13,14,14,15,16,17,18,18]
     mins = [22,2,52,52,37,22,47,27,37,7,32,27,52,27,17,12,17,57]
     h=dt.datetime.now().hour+2
     m=dt.datetime.now().minute
+    IsBusAvailable = False
 
     for x in range(18):
         if h == hours[x] and m <= mins[x] and mins[x] <= 9:
             send_message(user_id, "The earliest bus to lomza: " + str(hours[x]) + ":0" + str(mins[x]))
+            IsBusAvailable = False
             break
         if h == hours[x] and m <= mins[x] and mins[x] > 9:
             send_message(user_id, "The earliest bus to lomza: " + str(hours[x]) + ":" + str(mins[x]))
+            IsBusAvailable = False
             break
         elif h < hours[x] and mins[x] <= 9:
             send_message(user_id, "The earliest bus to lomza: " + str(hours[x]) + ":0" + str(mins[x]))
+            IsBusAvailable = False
             break
         elif h < hours[x] and mins[x] > 9:
             send_message(user_id, "The earliest bus to lomza: " + str(hours[x]) + ":" + str(mins[x]))
+            IsBusAvailable = False
             break
         else:
             continue
+
+    if(IsBusAvailable == False):
+        send_message(user_id, "No more upcoming buses to lomza today!")     
         
 
 def weatherinfo(user_id):
@@ -78,16 +93,14 @@ def weatherinfo(user_id):
     condition = location.condition
     forecasts = location.forecast
 
-    send_message(user_id, "Weather condition:")
     currentTemp = ("Current temp is: " + str(condition.temp))
     send_message(user_id, currentTemp)
     
     for forecast in forecasts:
         send_message(user_id, forecast.text)
-        send_message(user_id, forecast.date)
         
-        highestTemp = ("Highest temperature is: " + str(forecast.high))
-        lowestTemp = ("Lowest temperature is: " + str(forecast.low))
+        highestTemp = ("Highest temperature today is: " + str(forecast.high))
+        lowestTemp = ("Lowest temperature today is: " + str(forecast.low))
         
         send_message(user_id, highestTemp)
         send_message(user_id, lowestTemp)
@@ -99,10 +112,12 @@ def nextlesson(user_id):
     
     currentHour = dt.datetime.now().hour+2
     currentMinute = dt.datetime.now().minute
+    IsLessonUpcoming = False
 
 
     for x in range(8):
         if currentHour < lessonHour[x] and lesson[currentDay][x] != "NULL" or currentHour == lessonHour[x] and currentMinute < lessonMinute[x]:
+            IsLessonUpcoming = True
             lessonMessage = ("Next lesson: " + str(lesson[currentDay][x]))
             classMessage = ("In class: " + str(lessonClass[currentDay][x]))
             send_message(user_id, lessonMessage)
@@ -110,6 +125,9 @@ def nextlesson(user_id):
             break
         else:
             continue
+
+    if(IsLessonUpcoming == False):
+        send_message(user_id, "No more lessons upcoming today!")
 
 @app.route('/', methods=['POST'])
 def webhook():
@@ -130,11 +148,15 @@ def webhook():
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     if "text" in messaging_event["message"]:
                         message_text = messaging_event["message"]["text"]  # the message's text
-
-                    bustohome(user_id=sender_id)
-                    bustolomza(user_id=sender_id)
-                    weatherinfo(user_id=sender_id)
-                    nextlesson(user_id=sender_id)
+                    if message_text == "!weather":
+                        weatherinfo(user_id=sender_id)
+                    elif message_text == "!bus":
+                        bustohome(user_id=sender_id)
+                        bustolomza(user_id=sender_id)
+                    elif message_text == "!lesson":
+                        nextlesson(user_id=sender_id)
+                    else:
+                        send_message(sender_id, "Wrong command. Available commands: !weather, !bus, !lesson")
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
