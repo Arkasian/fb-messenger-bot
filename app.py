@@ -13,6 +13,10 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
+#use same naming convention, the best choice is to use this standarized in PEP8. However do not mix: methodname with method_name, where the second one is much better than the first one.
+#Try to use oop concept across all the bot's code.
+#think about making some methods "private"; saying that I want to suggest you to name methods in that way: _private_method_()
+#such a method is accessible but a developer which will use it, will be warned that he or she uses "internal API method".
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -27,6 +31,9 @@ def verify():
 
 
 def bustohome(user_id):
+    #those arrays below should be rewritten to "mathematical" form so as loops and arrays. 
+    #If really need to keep it in that way, make them global.
+    
     hours = [5,6,6,7,8,9,9,10,11,11,12,13,13,14,15,15,16,17,17,18]
     mins = [55,30,55,45,30,15,50,35,15,50,10,15,50,25,5,40,10,0,50,50]
     h=dt.datetime.now().hour+2
@@ -58,7 +65,7 @@ def bustohome(user_id):
 
 def bustolomza(user_id):
     hours = [6,7,7,8,9,10,10,11,12,13,13,14,14,15,16,17,18,18]
-    mins = [22,2,52,52,37,22,47,27,37,7,32,27,52,27,17,12,17,57]
+    mins = [22,2,52,52,37,22,47,27,37,7,32,27,52,27,17,12,17,57]#as written above^ do _NOT_ duplicate code.
     h=dt.datetime.now().hour+2
     m=dt.datetime.now().minute
     IsBusAvailable = False
@@ -204,4 +211,5 @@ def log(msg, *args, **kwargs):  # simple wrapper for logging to stdout on heroku
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)#is this needed on master branch? 
+    #do NOT leave debug set to true on master aka production.
